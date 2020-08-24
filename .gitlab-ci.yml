@@ -17,10 +17,12 @@ before_script:
   - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
 
 stages:
-  - deploy_stage
+  - deploy_prod_stage
 
-deploy:
-  stage: deploy_stage
+deploy_prod:
+  stage: deploy_prod_stage
+  only:
+    - master
   script:
     - yarn
     - npm run tsc
