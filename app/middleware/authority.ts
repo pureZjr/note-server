@@ -18,14 +18,14 @@ export default () => {
         ctx.body = {
           status: 'error',
           logout: true,
-          text: '登录已过期，请重新登录',
+          text: '登录已过期，请重新登录！',
         };
       }
 
     } else {
       ctx.body = {
         status: 'error',
-        text: '没有权限，请先登录',
+        text: '没有权限，请先登录！',
       };
     }
 
