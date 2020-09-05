@@ -123,5 +123,17 @@ export default class ArticleController extends Controller {
       text: res.text,
     };
   }
+
+  async rename() {
+    const ctx = this.ctx;
+    const { id, title } = ctx.request.body;
+    const res = await ctx.service.article.renameArticle(ctx.accountId, id, title);
+    // 设置响应体和状态码
+    ctx.body = {
+      status: res.success === 1 ? 'ok' : 'error',
+      text: res.text,
+    };
+
+  }
 }
 

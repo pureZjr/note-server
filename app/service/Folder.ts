@@ -274,5 +274,27 @@ export default class File extends Service {
     }
   }
 
+  /**
+   * 重命名
+   * @param {string} accountId - 用户id
+   * @param {string} id - 文件夹id
+   * @param {string} title - 标题
+   */
+  async renameFolder(accountId, id, title) {
+    try {
+      // 判断文件名称是否存在
+      const folderInfo = await this.app.mongo.findOne('folders', { query: { accountId, id } }) as IFolder;
+      const existFolderTitle = await this.app.mongo.findOne('folders', { query: { accountId, parentId: folderInfo.parentId, title } }) as IFolder;
+      if (existFolderTitle) {
+        return { success: 0, text: '创建失败,名称已存在' };
+      }
+      await this.app.mongo.findOneAndUpdate('folders', { filter: { id, accountId }, update: { $set: { title } } });
+      return { success: 1, text: '修改成功' };
+    } catch {
+      return { success: 0, text: '修改失败' };
+    }
+  }
+
+
 }
 

@@ -262,5 +262,26 @@ export default class Article extends Service {
       return { success: 0, text: '删除失败' };
     }
   }
+
+  /**
+   * 重命名
+   * @param {string} accountId - 用户id
+   * @param {string} id - 文章id
+   * @param {string} title - 标题
+   */
+  async renameArticle(accountId, id, title) {
+    try {
+      // 判断文件名称是否存在
+      const articleInfo = await this.app.mongo.findOne('articles', { query: { accountId, id } }) as IArticle;
+      const existArticleTitle = await this.app.mongo.findOne('articles', { query: { accountId, parentId: articleInfo.parentId, title } }) as IArticle;
+      if (existArticleTitle) {
+        return { success: 0, text: '创建失败,名称已存在' };
+      }
+      await this.app.mongo.findOneAndUpdate('articles', { filter: { id, accountId }, update: { $set: { title } } });
+      return { success: 1, text: '修改成功' };
+    } catch {
+      return { success: 0, text: '修改失败' };
+    }
+  }
 }
 
