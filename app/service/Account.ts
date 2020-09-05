@@ -31,6 +31,14 @@ export default class Account extends Service {
         return { success: 0, text: '创建失败,邮箱已存在' };
       }
       await this.app.mongo.insertOne('accounts', { doc: { id, ...account } });
+      // 注册成功生成欢迎笔记
+      this.ctx.service.article.create({
+        title: '欢迎使用幻象笔记',
+        content: '<div>云端资料库</div><div>一站式管理保存工作、学习、生活中各类珍贵资料</div><div>数据实时同步，珍贵资料永久留存，安全加密绝不外泄</div><div>支持全平台使用，无论电脑、网页还是手机，都能编辑和查看您的文档</div>',
+        parentId: '2',
+        type: 'article',
+        accountId: id,
+      });
       return { success: 1, text: '创建成功' };
     } catch {
       return { success: 0, text: '创建失败' };
