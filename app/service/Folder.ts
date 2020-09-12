@@ -12,6 +12,8 @@ interface IFolder {
   key: string;
   children: IFolder[];
   accountId?: string;
+  isTop?: 1 | 0;
+  tags?: string[];
   parentIds?: string[];
 }
 
@@ -43,6 +45,8 @@ export default class File extends Service {
         inRecycle: false,
         parentInRecycle: false,
         accountId: folder.accountId,
+        isTop: 0,
+        tags: [],
       };
       // 判断文件夹名称是否存在
       const existFolder = await this.app.mongo.findOne('folders', { query: { accountId: folder.accountId, inRecycle: false, title: folder.title } });
@@ -295,6 +299,22 @@ export default class File extends Service {
     }
   }
 
+  /**
+   * 文件夹置顶、取消置顶
+   * @param {string} accountId - 用户id
+   * @param {string} id - 文件夹id
+   * @param {boolean} is_top - 是否置顶
+   */
+  async setTop(accountId, id, is_top) {
+    try {
+      await this.app.mongo.findOneAndUpdate('folders', {
+        filter: { id, accountId }, update: { $set: { isTop: is_top } },
+      });
+      return { success: 1, text: '更新成功' };
+    } catch (err) {
+      return { success: 0, text: '更新失败' };
+    }
+  }
 
 }
 

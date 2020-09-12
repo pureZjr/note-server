@@ -16,6 +16,7 @@ export default (app: Application) => {
   router.get('/article-content-get', controller.article.articleContentGet);
   router.post('/article-recover', controller.article.recover);
   router.post('/article-rename', controller.article.rename);
+  router.post('/article-setTop', controller.article.setTop);
 
   // 文件夹
   router.post('/folder-add', controller.folder.create);
@@ -30,6 +31,7 @@ export default (app: Application) => {
   router.get('/search-folder', controller.folder.searchFolder);
   router.post('/folder-recover', controller.folder.recover);
   router.post('/folder-rename', controller.folder.rename);
+  router.post('/folder-setTop', controller.folder.setTop);
 
   // 用户
   router.post('/account-register', controller.account.register);

@@ -133,7 +133,17 @@ export default class ArticleController extends Controller {
       status: res.success === 1 ? 'ok' : 'error',
       text: res.text,
     };
+  }
 
+  async setTop() {
+    const ctx = this.ctx;
+    const { id, is_top } = ctx.request.body;
+    const res = await ctx.service.article.setTop(ctx.accountId, id, is_top);
+    // 设置响应体和状态码
+    ctx.body = {
+      status: res.success === 1 ? 'ok' : 'error',
+      text: res.text,
+    };
   }
 }
 

@@ -12,6 +12,8 @@ export interface IArticle {
   parentId?: string;
   accountId?: string;
   parentKey?: string;
+  isTop?: 1 | 0;
+  tags?: string[];
   type?: string;
 }
 
@@ -45,6 +47,8 @@ export default class Article extends Service {
         inRecycle: false,
         parentInRecycle: false,
         size: 0,
+        isTop: 0,
+        tags: [],
       };
       // 判断文件名称是否存在
       const existArticle = await this.app.mongo.findOne('articles', { query: { accountId: article.accountId, inRecycle: false, parentId: article.parentId, title: article.title } });
@@ -75,7 +79,7 @@ export default class Article extends Service {
    * @param {string} parentKey - 父文件夹key
    */
   async getInFolder(accountId: string, parentKey: string) {
-    const result = await this.app.mongo.find('articles', { query: { parentKey, accountId, inRecycle: false } });
+    const result = await this.app.mongo.find('articles', { query: { parentKey, accountId, inRecycle: false }, sort: { isTop: -1 } });
     return { success: 1, data: result, text: '获取成功' };
   }
 
@@ -85,7 +89,7 @@ export default class Article extends Service {
    * @param {string} accountId - 用户id
    */
   async get(id: string, accountId: string) {
-    const result = await this.app.mongo.find('articles', { query: { id, accountId } });
+    const result = await (await this.app.mongo.find('articles', { query: { id, accountId }, sort: { isTop: -1 } }));
     return { success: 1, data: result, text: '获取成功' };
   }
 
@@ -176,9 +180,9 @@ export default class Article extends Service {
       const query = {
         accountId,
         inRecycle: false,
-        updateTime: { $gte: moment().startOf('day').valueOf() },
+        updateTime: { $gte: moment().subtract('days', 7).valueOf() },
       };
-      const res = (await this.app.mongo.find('articles', { query })) as IArticle[];
+      const res = (await this.app.mongo.find('articles', { query, sort: { isTop: -1 } })) as IArticle[];
       return { success: 1, data: res, text: '获取成功' };
     } catch (err) {
       return { success: 0, text: '获取失败' };
@@ -224,7 +228,7 @@ export default class Article extends Service {
           inRecycle: true,
         });
       }
-      const res = (await this.app.mongo.find('articles', { query })) as IArticle[];
+      const res = (await this.app.mongo.find('articles', { query, sort: { isTop: -1 } })) as IArticle[];
       return { success: 1, data: res, text: '获取成功' };
     } catch (err) {
       return { success: 0, text: '获取失败' };
@@ -281,6 +285,23 @@ export default class Article extends Service {
       return { success: 1, text: '修改成功' };
     } catch {
       return { success: 0, text: '修改失败' };
+    }
+  }
+
+  /**
+   * 文章置顶、取消置顶
+   * @param {string} accountId - 用户id
+   * @param {string} id - 文章id
+   * @param {boolean} is_top - 是否置顶
+   */
+  async setTop(accountId, id, is_top) {
+    try {
+      await this.app.mongo.findOneAndUpdate('articles', {
+        filter: { id, accountId }, update: { $set: { isTop: is_top } },
+      });
+      return { success: 1, text: '更新成功' };
+    } catch (err) {
+      return { success: 0, text: '更新失败' };
     }
   }
 }
