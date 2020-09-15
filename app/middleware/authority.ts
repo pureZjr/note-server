@@ -1,11 +1,16 @@
 import * as jsonwebtoken from 'jsonwebtoken';
 
+import doNotCheckTokenUrl from './doNotCheckTokenUrl';
+
 export default () => {
+
 
   const authority = async (ctx, next) => {
     const { token } = ctx.header;
+    const doNotCheckToken = doNotCheckTokenUrl.includes(ctx.url.replace(/\?/, '').replace(/\//, ''));
+
     const hasToken = !!token;
-    if (ctx.url.indexOf('account-') > -1) {
+    if (doNotCheckToken) {
       await next();
     } else if (hasToken) {
       const { id, email } = jsonwebtoken.verify(token, 'motherfuck');
