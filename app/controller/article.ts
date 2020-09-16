@@ -145,5 +145,28 @@ export default class ArticleController extends Controller {
       text: res.text,
     };
   }
+
+  async getShareArticle() {
+    const ctx = this.ctx;
+    const { key } = ctx.request.query;
+    const res = await ctx.service.article.getShareArticle(key);
+    // 设置响应体和状态码
+    ctx.body = {
+      status: res.success === 1 ? 'ok' : 'error',
+      data: res.data,
+      text: res.text,
+    };
+  }
+
+  async setShareArticle() {
+    const ctx = this.ctx;
+    const { key, ts } = ctx.request.body;
+    const res = await ctx.service.article.setShareArticle(key, ts);
+    // 设置响应体和状态码
+    ctx.body = {
+      status: res.success === 1 ? 'ok' : 'error',
+      text: res.text,
+    };
+  }
 }
 

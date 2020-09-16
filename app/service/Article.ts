@@ -304,5 +304,50 @@ export default class Article extends Service {
       return { success: 0, text: '更新失败' };
     }
   }
+
+  /**
+   * 获取共享文章
+   * @param {string} key - 文章key
+   */
+  async getShareArticle(key) {
+    try {
+      const shareArticle = await this.app.mongo.findOne('shareArticles', {
+        query: {
+          key,
+        },
+      });
+      if (shareArticle._id) {
+        const articleInfo = (await this.app.mongo.findOne('articles', { query: { key } })) as IArticle;
+        const db = articleInfo.type as string;
+        const articleDetail = await this.app.mongo.findOne(db, { query: { id: articleInfo.id } });
+        return { success: 1, data: { title: articleInfo.title, content: articleDetail.content }, text: '获取成功' };
+      }
+      return { success: 0, text: '获取失败' };
+
+    } catch (err) {
+      return { success: 0, text: '获取失败' };
+    }
+  }
+
+
+  /**
+   * 生成共享文章
+   * @param {string} key - 文章key
+   * @param { number } ts - 共享时长
+   */
+  async setShareArticle(key, ts) {
+    try {
+      await this.app.mongo.findOneAndDelete('shareArticles', { filter: { key } });
+      await this.app.mongo.insertOne('shareArticles', {
+        doc: {
+          key,
+          ts,
+        },
+      });
+      return { success: 1, text: '获取成功' };
+    } catch (err) {
+      return { success: 0, text: '获取失败' };
+    }
+  }
 }
 

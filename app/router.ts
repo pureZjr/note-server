@@ -17,6 +17,8 @@ export default (app: Application) => {
   router.post('/article-recover', controller.article.recover);
   router.post('/article-rename', controller.article.rename);
   router.post('/article-setTop', controller.article.setTop);
+  router.get('/get-article-share', controller.article.getShareArticle);
+  router.post('/set-article-share', controller.article.setShareArticle);
 
   // 文件夹
   router.post('/folder-add', controller.folder.create);
