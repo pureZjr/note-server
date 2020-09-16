@@ -7,7 +7,7 @@ export default () => {
 
   const authority = async (ctx, next) => {
     const { token } = ctx.header;
-    const doNotCheckToken = doNotCheckTokenUrl.includes(ctx.url.replace(/\?/, '').replace(/\//, ''));
+    const doNotCheckToken = doNotCheckTokenUrl.includes(ctx.url.split('?')[0].replace(/\//, ''));
 
     const hasToken = !!token;
     if (doNotCheckToken) {
