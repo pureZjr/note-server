@@ -1,7 +1,5 @@
 image: node:12.14.0
 
-variables:
-
 cache:
   key: "$CI_BUILD_REF_NAME"
   untracked: true

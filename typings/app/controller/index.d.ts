@@ -5,13 +5,13 @@ import 'egg';
 import ExportAccount from '../../../app/controller/account';
 import ExportArticle from '../../../app/controller/article';
 import ExportFolder from '../../../app/controller/folder';
-import ExportHome from '../../../app/controller/home';
+import ExportQiniu from '../../../app/controller/qiniu';
 
 declare module 'egg' {
   interface IController {
     account: ExportAccount;
     article: ExportArticle;
     folder: ExportFolder;
-    home: ExportHome;
+    qiniu: ExportQiniu;
   }
 }
