@@ -39,6 +39,7 @@ export default (app: Application) => {
   router.post('/account-register', controller.account.register);
   router.post('/account-login', controller.account.login);
   router.post('/account-logout', controller.account.logout);
+  router.post('/account-edit', controller.account.edit);
 
   // 七牛
   router.get('/qiniu-token', controller.qiniu.token);

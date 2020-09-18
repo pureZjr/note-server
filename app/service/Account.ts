@@ -4,7 +4,7 @@ import * as jsonwebtoken from 'jsonwebtoken';
 
 interface IAccount {
   id?: string;
-  username?: string;
+  nickname?: string;
   password?: string;
   email?: string;
   parentId?: string;
@@ -18,7 +18,7 @@ export default class Account extends Service {
   /**
    * 用户注册
    * @param {Object} account - 用户对象
-   * @param {string} account.username - 用户名
+   * @param {string} account.nickname - 昵称
    * @param {string} account.password - 密码
    * @param {string} account.email - 邮箱
    */
@@ -30,7 +30,8 @@ export default class Account extends Service {
       if (existAccount) {
         return { success: 0, text: '创建失败,邮箱已存在' };
       }
-      await this.app.mongo.insertOne('accounts', { doc: { id, ...account } });
+      const defaultAvatar = 'http://qfz0ncp9r.hn-bkt.clouddn.com/Fnn562fSUBw4HdUH7GOH8sWD0GnH';
+      await this.app.mongo.insertOne('accounts', { doc: { id, ...account, avatar: defaultAvatar } });
       // 注册成功生成欢迎笔记
       this.ctx.service.article.create({
         title: '欢迎使用幻象笔记',
@@ -56,12 +57,33 @@ export default class Account extends Service {
       const user = (await this.app.mongo.findOne('accounts', { query: { ...account } }));
       if (user) {
         const token = jsonwebtoken.sign({ id: user.id, email: user.email }, 'motherfuck');
-        return { success: 1, text: '登录成功', data: { token } };
+        return { success: 1, text: '登录成功', data: { ...user, token, password: undefined, _id: undefined } };
       }
       return { success: 0, text: '登录失败' };
     } catch (err) {
       console.log(err);
       return { success: 0, text: '登录失败' };
+    }
+  }
+
+  /**
+   * 编辑用户信息
+   * @param {Object} account - 用户对象
+   * @param {string} account.avatar - 头像
+   * @param {string} account.email - 邮箱
+   * @param {string} account.nickname - 昵称
+   * @param {string} account.sex - 性别
+   * @param {string} account.area - 地区
+   * @param {string} account.sign - 个性签名
+   * @param {string} account.id - 用户id
+   */
+  async edit(account: IAccount) {
+    try {
+      await this.app.mongo.findOneAndUpdate('accounts', { filter: { id: account.id }, update: { $set: account } });
+      return { success: 1, text: '修改成功' };
+    } catch (err) {
+      console.log(err);
+      return { success: 0, text: '修改失败' };
     }
   }
 

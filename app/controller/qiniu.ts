@@ -13,16 +13,24 @@ export default class QiniuController extends Controller {
     const { AK, SK } = config;
     const ctx = this.ctx;
     const { bucket } = ctx.request.query;
-    const mac = new qiniu.auth.digest.Mac(AK, SK);
-    const options = {
-      scope: `${bucket}`,
-    };
-    const putPolicy = new qiniu.rs.PutPolicy(options);
-    const uploadToken = putPolicy.uploadToken(mac);
-    ctx.body = {
-      status: 'ok',
-      data: uploadToken,
-      text: '头像上传失败',
-    };
+    try {
+      const mac = new qiniu.auth.digest.Mac(AK, SK);
+      const options = {
+        scope: `${bucket}`,
+      };
+      const putPolicy = new qiniu.rs.PutPolicy(options);
+      const uploadToken = putPolicy.uploadToken(mac);
+      ctx.body = {
+        status: 'ok',
+        data: uploadToken,
+        text: '获取token成功',
+      };
+    } catch {
+      ctx.body = {
+        status: 'error',
+        text: '获取token失败',
+      };
+    }
+
   }
 }

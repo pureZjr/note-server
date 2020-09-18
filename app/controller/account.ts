@@ -43,4 +43,24 @@ export default class AccountController extends Controller {
     };
   }
 
+  async edit() {
+    const ctx = this.ctx;
+    const res = await this.ctx.service.account.edit({
+      ...ctx.request.body,
+      id: ctx.accountId,
+    });
+    if (res.success === 1) {
+      ctx.body = {
+        status: 'ok',
+        text: res.text,
+      };
+    } else {
+      ctx.body = {
+        status: 'error',
+        text: res.text,
+      };
+    }
+
+  }
+
 }
