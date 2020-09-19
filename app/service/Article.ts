@@ -228,7 +228,35 @@ export default class Article extends Service {
           inRecycle: true,
         });
       }
-      const res = (await this.app.mongo.find('articles', { query, sort: { isTop: -1 } })) as IArticle[];
+      const res = await this.app.mongo.aggregate('articles', {
+        pipeline: [{
+          $lookup: {
+            from: 'markdown',
+            localField: 'id',
+            foreignField: 'id',
+            as: 'markdown',
+          },
+        }, {
+          $lookup: {
+            from: 'article',
+            localField: 'id',
+            foreignField: 'id',
+            as: 'article',
+          },
+        }, {
+          $match: {
+            content: { $ne: [] },
+            $or: [
+              { title: { $regex: new RegExp(keyword) } },
+              query,
+              { 'markdown.content': { $regex: new RegExp(keyword) } },
+              { 'article.content': { $regex: new RegExp(keyword) } },
+            ],
+
+          },
+        }, { $project: { _id: 1, id: 1, title: 1, type: 1, parentId: 1, accountId: 1, parentFolderTitle: 1, parentKey: 1, key: 1, createTime: 1, updateTime: 1, inRecycle: 1, parentInRecycle: 1, size: 1 } },
+        ],
+      }) as IArticle[];
       return { success: 1, data: res, text: '获取成功' };
     } catch (err) {
       return { success: 0, text: '获取失败' };
