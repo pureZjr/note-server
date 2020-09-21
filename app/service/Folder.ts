@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as moment from 'moment';
 
 import { IArticle } from './Article';
+import { Collections } from '../constant/index';
 
 interface IFolder {
   id?: string;
@@ -49,12 +50,12 @@ export default class File extends Service {
         tags: [],
       };
       // 判断文件夹名称是否存在
-      const existFolder = await this.app.mongo.findOne('folders', { query: { accountId: folder.accountId, inRecycle: false, title: folder.title } });
+      const existFolder = await this.app.mongo.findOne(Collections.FOLDERS, { query: { accountId: folder.accountId, inRecycle: false, title: folder.title } });
       // 获取父文件夹的key
       if (existFolder) {
         return { success: 0, text: '创建失败,名称已存在' };
       }
-      await this.app.mongo.insertOne('folders', { doc: { ...folder, id, parentKey: folder.key, key: `${folder.key}-${id}`, ...extra } });
+      await this.app.mongo.insertOne(Collections.FOLDERS, { doc: { ...folder, id, parentKey: folder.key, key: `${folder.key}-${id}`, ...extra } });
       return { success: 1, data: { id, key: `${folder.key || folder.id}-${id}` }, text: '创建成功' };
     } catch {
       return { success: 0, text: '创建失败' };
@@ -67,7 +68,7 @@ export default class File extends Service {
  * @param {string} parentKey - 父文件夹key
  */
   async get(accountId: string, parentKey: string) {
-    const folders = (await this.app.mongo.find('folders', { query: { parentKey, accountId, inRecycle: false } })) as IFolder[];
+    const folders = (await this.app.mongo.find(Collections.FOLDERS, { query: { parentKey, accountId, inRecycle: false } })) as IFolder[];
     return { success: 1, data: folders, text: '成功' };
   }
 
@@ -77,7 +78,7 @@ export default class File extends Service {
  */
   async getFolderTree(accountId: string) {
     const getFolders = async (parentKey: string) => {
-      const folders = (await this.app.mongo.find('folders', {
+      const folders = (await this.app.mongo.find(Collections.FOLDERS, {
         query: { parentKey, accountId, inRecycle: false },
       })) as IFolder[];
       return folders;
@@ -104,13 +105,13 @@ export default class File extends Service {
 */
   async del(id: string, accountId: string) {
     try {
-      await this.app.mongo.findOneAndUpdate('folders', {
+      await this.app.mongo.findOneAndUpdate(Collections.FOLDERS, {
         filter: { id, accountId }, update: {
           $set: { inRecycle: true },
         },
       });
-      await this.app.mongo.updateMany('folders', { filter: { key: { $regex: new RegExp(`${id}-`) }, accountId }, update: { $set: { inRecycle: true, parentInRecycle: true } } });
-      await this.app.mongo.updateMany('articles', { filter: { key: { $regex: new RegExp(`${id}-`) }, accountId }, update: { $set: { inRecycle: true, parentInRecycle: true } } });
+      await this.app.mongo.updateMany(Collections.FOLDERS, { filter: { key: { $regex: new RegExp(`${id}-`) }, accountId }, update: { $set: { inRecycle: true, parentInRecycle: true } } });
+      await this.app.mongo.updateMany(Collections.FILES, { filter: { key: { $regex: new RegExp(`${id}-`) }, accountId }, update: { $set: { inRecycle: true, parentInRecycle: true } } });
       return { success: 1, text: '删除成功' };
     } catch {
       return { success: 0, text: '删除失败' };
@@ -124,9 +125,9 @@ export default class File extends Service {
   */
   async delComplete(id: string, accountId: string) {
     try {
-      await this.app.mongo.deleteMany('folders', { filter: { key: { $regex: new RegExp(`${id}`) }, accountId } });
-      const articles = await this.app.mongo.find('articles', { query: { key: { $regex: new RegExp(`${id}`) }, accountId } }) as IArticle[];
-      this.app.mongo.deleteMany('articles', { filter: { key: { $regex: new RegExp(`${id}`) }, accountId } });
+      await this.app.mongo.deleteMany(Collections.FOLDERS, { filter: { key: { $regex: new RegExp(`${id}`) }, accountId } });
+      const articles = await this.app.mongo.find(Collections.FILES, { query: { key: { $regex: new RegExp(`${id}`) }, accountId } }) as IArticle[];
+      this.app.mongo.deleteMany(Collections.FILES, { filter: { key: { $regex: new RegExp(`${id}`) }, accountId } });
       articles.forEach(v => {
         const db = v.type as string;
         this.app.mongo.findOneAndDelete(db, { filter: { id: v.id, accountId } });
@@ -148,7 +149,7 @@ export default class File extends Service {
     try {
       const update = { ...folder };
       delete update.id;
-      await this.app.mongo.findOneAndUpdate('folders', {
+      await this.app.mongo.findOneAndUpdate(Collections.FOLDERS, {
         filter: { id: folder.id, accountId: folder.accountId }, update: { $set: update },
       });
       return { success: 1, text: '更新成功' };
@@ -173,7 +174,7 @@ export default class File extends Service {
           key: { $regex: new RegExp(`${parentKey}-[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$`) },
         });
       }
-      const res = (await this.app.mongo.find('folders', { query })) as IFolder[];
+      const res = (await this.app.mongo.find(Collections.FOLDERS, { query })) as IFolder[];
       return { success: 1, data: res, text: '获取成功' };
     } catch (err) {
       return { success: 0, text: '获取失败' };
@@ -187,7 +188,7 @@ export default class File extends Service {
   */
   async info(accountId, key) {
     try {
-      const folders = (await this.app.mongo.find('folders', { query: { key, accountId, inRecycle: false } })) as IFolder[];
+      const folders = (await this.app.mongo.find(Collections.FOLDERS, { query: { key, accountId, inRecycle: false } })) as IFolder[];
       return { success: 1, data: folders, text: '成功' };
     } catch { return { success: 0, text: '获取失败' }; }
   }
@@ -203,7 +204,7 @@ export default class File extends Service {
         updateTime: { $gte: moment().startOf('day').valueOf() },
         inRecycle: false,
       };
-      const res = (await this.app.mongo.find('folders', { query })) as IFolder[];
+      const res = (await this.app.mongo.find(Collections.FOLDERS, { query })) as IFolder[];
       return { success: 1, data: res, text: '获取成功' };
     } catch (err) {
       return { success: 0, text: '获取失败' };
@@ -251,7 +252,7 @@ export default class File extends Service {
           inRecycle: true,
         });
       }
-      const res = (await this.app.mongo.find('folders', { query })) as IFolder[];
+      const res = (await this.app.mongo.find(Collections.FOLDERS, { query })) as IFolder[];
       return { success: 1, data: res, text: '获取成功' };
     } catch (err) {
       return { success: 0, text: '获取失败' };
@@ -265,13 +266,13 @@ export default class File extends Service {
    */
   async recoverFolder(accountId, id) {
     try {
-      await this.app.mongo.updateMany('folders', {
+      await this.app.mongo.updateMany(Collections.FOLDERS, {
         filter: { id, accountId }, update: {
           $set: { inRecycle: false },
         },
       });
-      await this.app.mongo.updateMany('folders', { filter: { key: { $regex: new RegExp(`${id}`) }, accountId }, update: { $set: { inRecycle: false, parentInRecycle: false } } });
-      await this.app.mongo.updateMany('articles', { filter: { key: { $regex: new RegExp(`${id}`) }, accountId }, update: { $set: { inRecycle: false, parentInRecycle: false } } });
+      await this.app.mongo.updateMany(Collections.FOLDERS, { filter: { key: { $regex: new RegExp(`${id}`) }, accountId }, update: { $set: { inRecycle: false, parentInRecycle: false } } });
+      await this.app.mongo.updateMany(Collections.FILES, { filter: { key: { $regex: new RegExp(`${id}`) }, accountId }, update: { $set: { inRecycle: false, parentInRecycle: false } } });
       return { success: 1, text: '删除成功' };
     } catch {
       return { success: 0, text: '删除失败' };
@@ -287,12 +288,12 @@ export default class File extends Service {
   async renameFolder(accountId, id, title) {
     try {
       // 判断文件名称是否存在
-      const folderInfo = await this.app.mongo.findOne('folders', { query: { accountId, id } }) as IFolder;
-      const existFolderTitle = await this.app.mongo.findOne('folders', { query: { accountId, parentId: folderInfo.parentId, title } }) as IFolder;
+      const folderInfo = await this.app.mongo.findOne(Collections.FOLDERS, { query: { accountId, id } }) as IFolder;
+      const existFolderTitle = await this.app.mongo.findOne(Collections.FOLDERS, { query: { accountId, parentId: folderInfo.parentId, title } }) as IFolder;
       if (existFolderTitle) {
         return { success: 0, text: '创建失败,名称已存在' };
       }
-      await this.app.mongo.findOneAndUpdate('folders', { filter: { id, accountId }, update: { $set: { title } } });
+      await this.app.mongo.findOneAndUpdate(Collections.FOLDERS, { filter: { id, accountId }, update: { $set: { title } } });
       return { success: 1, text: '修改成功' };
     } catch {
       return { success: 0, text: '修改失败' };
@@ -307,7 +308,7 @@ export default class File extends Service {
    */
   async setTop(accountId, id, is_top) {
     try {
-      await this.app.mongo.findOneAndUpdate('folders', {
+      await this.app.mongo.findOneAndUpdate(Collections.FOLDERS, {
         filter: { id, accountId }, update: { $set: { isTop: is_top } },
       });
       return { success: 1, text: '更新成功' };

@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as moment from 'moment';
 
 import { sizeof } from '../util';
+import { Collections } from '../constant/index';
 
 export interface IArticle {
   id?: string;
@@ -51,17 +52,17 @@ export default class Article extends Service {
         tags: [],
       };
       // 判断文件名称是否存在
-      const existArticle = await this.app.mongo.findOne('articles', { query: { accountId: article.accountId, inRecycle: false, parentId: article.parentId, title: article.title } });
+      const existArticle = await this.app.mongo.findOne(Collections.FILES, { query: { accountId: article.accountId, inRecycle: false, parentId: article.parentId, title: article.title } });
       if (existArticle) {
         return { success: 0, text: '创建失败,名称已存在' };
       }
       const content = article.content;
       delete article.content;
-      const belongFolder = await this.app.mongo.findOne('folders', { query: { accountId: article.accountId, id: article.parentId, inRecycle: false } });
+      const belongFolder = await this.app.mongo.findOne(Collections.FOLDERS, { query: { accountId: article.accountId, id: article.parentId, inRecycle: false } });
       const parentFolderTitle = belongFolder ? belongFolder.title : '我的文件夹';
       // 插入文章基本信息
       const insertData = { ...article, parentFolderTitle, parentKey: `${belongFolder ? belongFolder.key : '2'}`, key: `${belongFolder ? belongFolder.key : '2'}-${id}`, id, ...extra };
-      await this.app.mongo.insertOne('articles', { doc: insertData });
+      await this.app.mongo.insertOne(Collections.FILES, { doc: insertData });
       // 插入文章内容
       const db = article.type as string;
       await this.app.mongo.insertOne(db, { doc: { id, accountId: article.accountId, content } });
@@ -79,7 +80,7 @@ export default class Article extends Service {
    * @param {string} parentKey - 父文件夹key
    */
   async getInFolder(accountId: string, parentKey: string) {
-    const result = await this.app.mongo.find('articles', { query: { parentKey, accountId, inRecycle: false }, sort: { isTop: -1 } });
+    const result = await this.app.mongo.find(Collections.FILES, { query: { parentKey, accountId, inRecycle: false }, sort: { isTop: -1 } });
     return { success: 1, data: result, text: '获取成功' };
   }
 
@@ -89,7 +90,7 @@ export default class Article extends Service {
    * @param {string} accountId - 用户id
    */
   async get(id: string, accountId: string) {
-    const result = await (await this.app.mongo.find('articles', { query: { id, accountId }, sort: { isTop: -1 } }));
+    const result = await (await this.app.mongo.find(Collections.FILES, { query: { id, accountId }, sort: { isTop: -1 } }));
     return { success: 1, data: result, text: '获取成功' };
   }
 
@@ -100,7 +101,7 @@ export default class Article extends Service {
    */
   async del(id: string, accountId: string) {
     try {
-      await this.app.mongo.findOneAndUpdate('articles', { filter: { id, accountId }, update: { $set: { inRecycle: true } } });
+      await this.app.mongo.findOneAndUpdate(Collections.FILES, { filter: { id, accountId }, update: { $set: { inRecycle: true } } });
       return { success: 1, text: '删除成功' };
     } catch {
       return { success: 0, text: '删除失败' };
@@ -115,7 +116,7 @@ export default class Article extends Service {
    */
   async delComplete(id: string, accountId: string, type: string) {
     try {
-      await this.app.mongo.deleteMany('articles', { filter: { id, accountId } });
+      await this.app.mongo.deleteMany(Collections.FILES, { filter: { id, accountId } });
       const db = type;
       await this.app.mongo.findOneAndDelete(db, { filter: { id, accountId } });
       return { success: 1, text: '删除成功' };
@@ -140,7 +141,7 @@ export default class Article extends Service {
       const update = { ...article, content: undefined, updateTime: new Date().getTime(), size: sizeof(article.content, 'utf-8') };
       delete update.id;
       // 修改文章基本信息
-      await this.app.mongo.findOneAndUpdate('articles', {
+      await this.app.mongo.findOneAndUpdate(Collections.FILES, {
         filter: { id: article.id, accountId: article.accountId }, update: { $set: update },
       });
       // 修改文章内容
@@ -163,7 +164,7 @@ export default class Article extends Service {
       const query = {
         accountId, inRecycle: true, parentInRecycle: false,
       };
-      const res = (await this.app.mongo.find('articles', { query })) as IArticle[];
+      const res = (await this.app.mongo.find(Collections.FILES, { query })) as IArticle[];
       return { success: 1, data: res, text: '获取成功' };
     } catch (err) {
       console.log(err);
@@ -182,7 +183,7 @@ export default class Article extends Service {
         inRecycle: false,
         updateTime: { $gte: moment().subtract('days', 7).valueOf() },
       };
-      const res = (await this.app.mongo.find('articles', { query, sort: { isTop: -1 } })) as IArticle[];
+      const res = (await this.app.mongo.find(Collections.FILES, { query, sort: { isTop: -1 } })) as IArticle[];
       return { success: 1, data: res, text: '获取成功' };
     } catch (err) {
       return { success: 0, text: '获取失败' };
@@ -228,7 +229,7 @@ export default class Article extends Service {
           inRecycle: true,
         });
       }
-      const res = await this.app.mongo.aggregate('articles', {
+      const res = await this.app.mongo.aggregate(Collections.FILES, {
         pipeline: [{
           $lookup: {
             from: 'markdown',
@@ -288,7 +289,7 @@ export default class Article extends Service {
    */
   async recoverArticle(accountId, id) {
     try {
-      await this.app.mongo.findOneAndUpdate('articles', { filter: { id, accountId }, update: { $set: { inRecycle: false } } });
+      await this.app.mongo.findOneAndUpdate(Collections.FILES, { filter: { id, accountId }, update: { $set: { inRecycle: false } } });
       return { success: 1, text: '删除成功' };
     } catch {
       return { success: 0, text: '删除失败' };
@@ -304,12 +305,12 @@ export default class Article extends Service {
   async renameArticle(accountId, id, title) {
     try {
       // 判断文件名称是否存在
-      const articleInfo = await this.app.mongo.findOne('articles', { query: { accountId, id } }) as IArticle;
-      const existArticleTitle = await this.app.mongo.findOne('articles', { query: { accountId, parentId: articleInfo.parentId, title } }) as IArticle;
+      const articleInfo = await this.app.mongo.findOne(Collections.FILES, { query: { accountId, id } }) as IArticle;
+      const existArticleTitle = await this.app.mongo.findOne(Collections.FILES, { query: { accountId, parentId: articleInfo.parentId, title } }) as IArticle;
       if (existArticleTitle) {
         return { success: 0, text: '创建失败,名称已存在' };
       }
-      await this.app.mongo.findOneAndUpdate('articles', { filter: { id, accountId }, update: { $set: { title } } });
+      await this.app.mongo.findOneAndUpdate(Collections.FILES, { filter: { id, accountId }, update: { $set: { title } } });
       return { success: 1, text: '修改成功' };
     } catch {
       return { success: 0, text: '修改失败' };
@@ -324,7 +325,7 @@ export default class Article extends Service {
    */
   async setTop(accountId, id, is_top) {
     try {
-      await this.app.mongo.findOneAndUpdate('articles', {
+      await this.app.mongo.findOneAndUpdate(Collections.FILES, {
         filter: { id, accountId }, update: { $set: { isTop: is_top } },
       });
       return { success: 1, text: '更新成功' };
@@ -339,13 +340,13 @@ export default class Article extends Service {
    */
   async getShareArticle(key) {
     try {
-      const shareArticle = await this.app.mongo.findOne('shareArticles', {
+      const shareArticle = await this.app.mongo.findOne(Collections.SHAREARTICLES, {
         query: {
           key,
         },
       });
       if (shareArticle._id) {
-        const articleInfo = (await this.app.mongo.findOne('articles', { query: { key } })) as IArticle;
+        const articleInfo = (await this.app.mongo.findOne(Collections.FILES, { query: { key } })) as IArticle;
         const db = articleInfo.type as string;
         const articleDetail = await this.app.mongo.findOne(db, { query: { id: articleInfo.id } });
         return { success: 1, data: { title: articleInfo.title, content: articleDetail.content }, text: '获取成功' };
@@ -365,8 +366,8 @@ export default class Article extends Service {
    */
   async setShareArticle(key, ts) {
     try {
-      await this.app.mongo.findOneAndDelete('shareArticles', { filter: { key } });
-      await this.app.mongo.insertOne('shareArticles', {
+      await this.app.mongo.findOneAndDelete(Collections.SHAREARTICLES, { filter: { key } });
+      await this.app.mongo.insertOne(Collections.SHAREARTICLES, {
         doc: {
           key,
           ts,
