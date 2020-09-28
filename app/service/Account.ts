@@ -2,7 +2,7 @@ import { Service } from 'egg';
 import { v4 as uuidv4 } from 'uuid';
 import * as jsonwebtoken from 'jsonwebtoken';
 
-import { Collections } from '../constant/index';
+import { Collections, Types } from '../constant/index';
 
 interface IAccount {
   id?: string;
@@ -35,11 +35,11 @@ export default class Account extends Service {
       const defaultAvatar = 'http://qfz0ncp9r.hn-bkt.clouddn.com/Fnn562fSUBw4HdUH7GOH8sWD0GnH';
       await this.app.mongo.insertOne(Collections.ACCOUNTS, { doc: { id, ...account, avatar: defaultAvatar } });
       // 注册成功生成欢迎笔记
-      this.ctx.service.article.create({
+      this.ctx.service.file.create({
         title: '欢迎使用幻象笔记',
         content: '<div>云端资料库</div><div>一站式管理保存工作、学习、生活中各类珍贵资料</div><div>数据实时同步，珍贵资料永久留存，安全加密绝不外泄</div><div>支持全平台使用，无论电脑、网页还是手机，都能编辑和查看您的文档</div>',
         parentId: '2',
-        type: 'article',
+        type: Types.ARTICLE,
         accountId: id,
       });
       return { success: 1, text: '创建成功' };
