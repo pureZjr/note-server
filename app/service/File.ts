@@ -83,7 +83,7 @@ export default class File extends Service {
    * @param {string} parentKey - 父文件夹key
    */
   async getInFolder(accountId: string, parentKey: string) {
-    const result = await this.app.mongo.find(Collections.FILES, { query: { parentKey, accountId, inRecycle: false }, sort: { isTop: -1 } });
+    const result = await this.app.mongo.find(Collections.FILES, { query: { parentKey, accountId, inRecycle: false }, sort: { isTop: -1, updateTime: -1 } });
     return { success: 1, data: result, text: '获取成功' };
   }
 
@@ -353,6 +353,24 @@ export default class File extends Service {
     } catch (err) {
       return { success: 0, text: '获取失败' };
     }
+  }
+
+  /**
+   * 获取文件内容
+   * @param {string} accountId - 用户id
+   * @param {string} id - 文件id
+   * @param {string} type - 类型
+   */
+  async fileContentGet(accountId, id, type) {
+    try {
+      const query = {
+        accountId,
+        id,
+      };
+      const db = type;
+      const res = (await this.app.mongo.findOne(db, { query }));
+      return { success: 1, data: res.content || '', text: '获取成功' };
+    } catch (err) { return { success: 0, text: '获取失败' }; }
   }
 
 }

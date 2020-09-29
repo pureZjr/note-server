@@ -2,7 +2,7 @@ import { Service } from 'egg';
 import { v4 as uuidv4 } from 'uuid';
 import * as moment from 'moment';
 
-import { IArticle } from './Article';
+import { IFile } from './File';
 import { Collections } from '../constant/index';
 
 interface IFolder {
@@ -126,7 +126,7 @@ export default class File extends Service {
   async delComplete(id: string, accountId: string) {
     try {
       await this.app.mongo.deleteMany(Collections.FOLDERS, { filter: { key: { $regex: new RegExp(`${id}`) }, accountId } });
-      const articles = await this.app.mongo.find(Collections.FILES, { query: { key: { $regex: new RegExp(`${id}`) }, accountId } }) as IArticle[];
+      const articles = await this.app.mongo.find(Collections.FILES, { query: { key: { $regex: new RegExp(`${id}`) }, accountId } }) as IFile[];
       this.app.mongo.deleteMany(Collections.FILES, { filter: { key: { $regex: new RegExp(`${id}`) }, accountId } });
       articles.forEach(v => {
         const db = v.type as string;

@@ -3,9 +3,6 @@ import { Application } from 'egg';
 export default (app: Application) => {
   const { controller, router } = app;
 
-  // 文章
-  router.get('/article-content-get', controller.article.articleContentGet);
-
   // 文件夹
   router.post('/folder-add', controller.folder.create);
   router.get('/folderTree-get', controller.folder.getTree);
@@ -48,5 +45,6 @@ export default (app: Application) => {
   router.post('/file-setTop', controller.file.setTop);
   router.get('/get-file-share', controller.file.getShareFile);
   router.post('/set-file-share', controller.file.setShareFile);
+  router.get('/file-content-get', controller.file.fileContentGet);
 
 };

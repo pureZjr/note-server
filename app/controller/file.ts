@@ -168,5 +168,16 @@ export default class File extends Controller {
     };
   }
 
+  async fileContentGet() {
+    const ctx = this.ctx;
+    const { id, type } = ctx.request.query;
+    const res = await ctx.service.file.fileContentGet(ctx.accountId, id, type);
+    // 设置响应体和状态码
+    ctx.body = {
+      status: res.success === 1 ? 'ok' : 'error',
+      data: res.data,
+      text: res.text,
+    };
+  }
 
 }
