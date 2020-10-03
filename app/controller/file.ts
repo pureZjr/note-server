@@ -34,8 +34,8 @@ export default class File extends Controller {
 
   async getFolderFiles() {
     const ctx = this.ctx;
-    const { parentKey } = ctx.request.query;
-    const res = await ctx.service.file.getInFolder(ctx.accountId, parentKey);
+    const { parentKey, sort } = ctx.request.query;
+    const res = await ctx.service.file.getInFolder(ctx.accountId, parentKey, sort);
     // 设置响应体和状态码
     ctx.body = {
       status: res.success === 1 ? 'ok' : 'error',
@@ -46,8 +46,8 @@ export default class File extends Controller {
 
   async get() {
     const ctx = this.ctx;
-    const { id } = ctx.request.query;
-    const res = await ctx.service.file.get(id, ctx.accountId);
+    const { id, sort } = ctx.request.query;
+    const res = await ctx.service.file.get(id, ctx.accountId, sort);
     // 设置响应体和状态码
     ctx.body = {
       status: res.success === 1 ? 'ok' : 'error',
@@ -79,7 +79,8 @@ export default class File extends Controller {
 
   async getDelFile() {
     const ctx = this.ctx;
-    const res = await ctx.service.file.getDelFile(ctx.accountId);
+    const { sort } = this.ctx.request.query;
+    const res = await ctx.service.file.getDelFile(ctx.accountId, sort);
     // 设置响应体和状态码
     ctx.body = {
       status: res.success === 1 ? 'ok' : 'error',
@@ -90,7 +91,8 @@ export default class File extends Controller {
 
   async getNewestFile() {
     const ctx = this.ctx;
-    const res = await ctx.service.file.getNewestFile(ctx.accountId);
+    const { sort } = ctx.request.query;
+    const res = await ctx.service.file.getNewestFile(ctx.accountId, sort);
     // 设置响应体和状态码
     ctx.body = {
       status: res.success === 1 ? 'ok' : 'error',

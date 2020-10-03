@@ -81,9 +81,12 @@ export default class File extends Service {
    * 获取文件夹下的文件
    * @param {string} accountId - 用户id
    * @param {string} parentKey - 父文件夹key
+   * @param {string} sort - 排序，默认更新时间
    */
-  async getInFolder(accountId: string, parentKey: string) {
-    const result = await this.app.mongo.find(Collections.FILES, { query: { parentKey, accountId, inRecycle: false }, sort: { isTop: -1, updateTime: -1 } });
+  async getInFolder(accountId: string, parentKey: string, sort: string) {
+    const sortBy = {};
+    sortBy[sort] = -1;
+    const result = await this.app.mongo.find(Collections.FILES, { query: { parentKey, accountId, inRecycle: false }, sort: { isTop: -1, ...sortBy } });
     return { success: 1, data: result, text: '获取成功' };
   }
 
@@ -91,9 +94,12 @@ export default class File extends Service {
    * 获取文件
    * @param {string} id - 文件id
    * @param {string} accountId - 用户id
+   * @param {string} sort - 排序，默认更新时间
    */
-  async get(id: string, accountId: string) {
-    const result = await (await this.app.mongo.find(Collections.FILES, { query: { id, accountId }, sort: { isTop: -1 } }));
+  async get(id: string, accountId: string, sort: string) {
+    const sortBy = {};
+    sortBy[sort] = -1;
+    const result = await (await this.app.mongo.find(Collections.FILES, { query: { id, accountId }, sort: { isTop: -1, ...sortBy } }));
     return { success: 1, data: result, text: '获取成功' };
   }
 
@@ -167,13 +173,16 @@ export default class File extends Service {
   /**
    * 获取回收站的文件
    * @param {string} accountId - 用户id
+   * @param {string} sort - 排序，默认更新时间
    */
-  async getDelFile(accountId) {
+  async getDelFile(accountId, sort: string) {
     try {
       const query = {
         accountId, inRecycle: true, parentInRecycle: false,
       };
-      const res = (await this.app.mongo.find(Collections.FILES, { query }));
+      const sortBy = {};
+      sortBy[sort] = -1;
+      const res = (await this.app.mongo.find(Collections.FILES, { query, sort: { ...sortBy } }));
       return { success: 1, data: res, text: '获取成功' };
     } catch (err) {
       console.log(err);
@@ -184,15 +193,18 @@ export default class File extends Service {
   /**
    * 获取最新文件
    * @param {string} accountId - 用户id
+   * @param {string} sort - 排序，默认更新时间
    */
-  async getNewestFile(accountId) {
+  async getNewestFile(accountId, sort) {
     try {
       const query = {
         accountId,
         inRecycle: false,
         updateTime: { $gte: moment().subtract('days', 7).valueOf() },
       };
-      const res = (await this.app.mongo.find(Collections.FILES, { query, sort: { isTop: -1 } }));
+      const sortBy = {};
+      sortBy[sort] = -1;
+      const res = (await this.app.mongo.find(Collections.FILES, { query, sort: { isTop: -1, ...sortBy } }));
       return { success: 1, data: res, text: '获取成功' };
     } catch (err) {
       return { success: 0, text: '获取失败' };
@@ -279,11 +291,10 @@ export default class File extends Service {
     try {
       const query = {
         accountId,
-        title: { $regex: new RegExp(`${keyword}`) },
       };
       if (tabs === Tabs.NewDoc) {
         Object.assign(query, {
-          updateTime: { $gte: moment().startOf('day').valueOf() },
+          updateTime: { $gte: moment().subtract('days', 7).valueOf() },
           inRecycle: false,
         });
       } else if (tabs === Tabs.MyFolder) {
@@ -300,6 +311,7 @@ export default class File extends Service {
           inRecycle: true,
         });
       }
+      console.log({ ...query });
       const res = await this.app.mongo.aggregate(Collections.FILES, {
         pipeline: [{
           $lookup: {
@@ -318,9 +330,9 @@ export default class File extends Service {
         }, {
           $match: {
             content: { $ne: [] },
+            ...query,
             $or: [
               { title: { $regex: new RegExp(keyword) } },
-              query,
               { 'markdown.content': { $regex: new RegExp(keyword) } },
               { 'article.content': { $regex: new RegExp(keyword) } },
             ],

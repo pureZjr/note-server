@@ -14,8 +14,8 @@ export default class ArticleController extends Controller {
 
   async get() {
     const ctx = this.ctx;
-    const { parentKey } = ctx.request.query;
-    const res = await ctx.service.folder.get(ctx.accountId, parentKey);
+    const { parentKey, sort } = ctx.request.query;
+    const res = await ctx.service.folder.get(ctx.accountId, parentKey, sort);
     // 设置响应体和状态码
     ctx.body = {
       status: res.success === 1 ? 'ok' : 'error',
@@ -69,8 +69,8 @@ export default class ArticleController extends Controller {
 
   async getDelFolder() {
     const ctx = this.ctx;
-    const { key } = ctx.request.query;
-    const res = await ctx.service.folder.getDelFolder(ctx.accountId, key);
+    const { sort } = ctx.request.query;
+    const res = await ctx.service.folder.getDelFolder(ctx.accountId, sort);
     // 设置响应体和状态码
     ctx.body = {
       status: res.success === 1 ? 'ok' : 'error',
@@ -105,8 +105,11 @@ export default class ArticleController extends Controller {
 
   async searchFolder() {
     const ctx = this.ctx;
-    const { key, keyword, type } = ctx.request.query;
-    const res = await ctx.service.folder.searchFolder(ctx.accountId, keyword, type, key);
+    const { key, keyword, type, sort } = ctx.request.query;
+    const res = await ctx.service.folder.searchFolder({
+      accountId: ctx.accountId,
+      keyword, type, parentKey: key, sort,
+    });
     // 设置响应体和状态码
     ctx.body = {
       status: res.success === 1 ? 'ok' : 'error',
