@@ -127,8 +127,8 @@ export default class File extends Controller {
 
   async rename() {
     const ctx = this.ctx;
-    const { id, title } = ctx.request.body;
-    const res = await ctx.service.file.renameFile(ctx.accountId, id, title);
+    const { id, title, type } = ctx.request.body;
+    const res = await ctx.service.file.renameFile(ctx.accountId, id, title, type);
     // 设置响应体和状态码
     ctx.body = {
       status: res.success === 1 ? 'ok' : 'error',

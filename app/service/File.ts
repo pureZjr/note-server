@@ -154,12 +154,13 @@ export default class File extends Service {
    * @param {string} accountId - 用户id
    * @param {string} id - 文件id
    * @param {string} title - 标题
+   * @param {Types} type - 文件类型
    */
-  async renameFile(accountId, id, title) {
+  async renameFile(accountId, id, title, type) {
     try {
       // 判断文件名称是否存在
       const fileInfo = await this.app.mongo.findOne(Collections.FILES, { query: { accountId, id } });
-      const existFileTitle = await this.app.mongo.findOne(Collections.FILES, { query: { accountId, parentId: fileInfo.parentId, title } });
+      const existFileTitle = await this.app.mongo.findOne(Collections.FILES, { query: { accountId, inRecycle: false, arentId: fileInfo.parentId, title, type } });
       if (existFileTitle) {
         return { success: 0, text: '创建失败,名称已存在' };
       }
