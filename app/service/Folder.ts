@@ -50,13 +50,14 @@ export default class File extends Service {
         tags: [],
       };
       // 判断文件夹名称是否存在
-      const existFolder = await this.app.mongo.findOne(Collections.FOLDERS, { query: { accountId: folder.accountId, inRecycle: false, title: folder.title } });
+      const existFolder = await this.app.mongo.findOne(Collections.FOLDERS, { query: { accountId: folder.accountId, inRecycle: false, title: folder.title,parentKey:folder.key } });
       // 获取父文件夹的key
       if (existFolder) {
         return { success: 0, text: '创建失败,名称已存在' };
       }
-      await this.app.mongo.insertOne(Collections.FOLDERS, { doc: { ...folder, id, parentKey: folder.key, key: `${folder.key}-${id}`, ...extra } });
-      return { success: 1, data: { id, key: `${folder.key || folder.id}-${id}` }, text: '创建成功' };
+      const doc = { ...folder, id, parentKey: folder.key, key: `${folder.key}-${id}`, ...extra }
+      await this.app.mongo.insertOne(Collections.FOLDERS, { doc });
+      return { success: 1, data: { doc }, text: '创建成功' };
     } catch {
       return { success: 0, text: '创建失败' };
     }

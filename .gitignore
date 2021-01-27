@@ -19,3 +19,7 @@ config/**/*.js
 app/**/*.map
 test/**/*.map
 config/**/*.map
+appveyor.yml
+.travis.yml
+.github/*
+typings/**/*
