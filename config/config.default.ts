@@ -30,7 +30,9 @@ export default (appInfo: EggAppInfo) => {
       name: 'blog',
       user: '',
       password: '',
-      options: {},
+      options: {
+        useUnifiedTopology: true,
+      },
     },
   };
 
