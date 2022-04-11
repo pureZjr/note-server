@@ -1,11 +1,14 @@
 name: note-server build
-# 触发workflow的条件
+
 on:
   push:
     branches: [master]
   pull_request:
     branches: [master]
 
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@master
