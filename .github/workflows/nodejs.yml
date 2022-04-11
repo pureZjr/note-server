@@ -23,5 +23,6 @@ jobs:
           script: |
             cd /home/note-server
             git pull
+            yarn
             yarn stop
             yarn start
