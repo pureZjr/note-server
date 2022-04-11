@@ -272,7 +272,7 @@ export default class File extends Service {
         const fileInfo = (await this.app.mongo.findOne(Collections.FILES, { query: { key } }));
         const db = fileInfo.type;
         const fileDetail = await this.app.mongo.findOne(db, { query: { id: fileInfo.id } });
-        return { success: 1, data: { title: fileInfo.title, content: fileDetail.content, type: fileInfo.type }, text: '获取成功' };
+        return { success: 1, data: { title: fileInfo.title, content: fileDetail.content }, text: '获取成功' };
       }
       return { success: 0, text: '获取失败' };
 
