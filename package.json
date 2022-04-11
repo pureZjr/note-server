@@ -13,8 +13,7 @@
     "dev": "egg-bin dev",
     "tsc": "tsc -p tsconfig.json",
     "lint": "eslint . --ext .ts",
-    "clean": "ets clean",
-    "restart": "yarn stop && yarn start"
+    "clean": "ets clean"
   },
   "dependencies": {
     "egg": "^2.27.0",
