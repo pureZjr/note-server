@@ -24,5 +24,6 @@ jobs:
             cd /home/note-server
             git pull
             yarn
+            yarn tsc
             yarn stop
             yarn start
