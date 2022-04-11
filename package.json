@@ -14,7 +14,7 @@
     "tsc": "tsc -p tsconfig.json",
     "lint": "eslint . --ext .ts",
     "clean": "ets clean",
-    "deployProd": "./deploy/deployProd.sh"
+    "restart": "yarn stop && yarn start"
   },
   "dependencies": {
     "egg": "^2.27.0",
