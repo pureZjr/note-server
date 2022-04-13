@@ -32,7 +32,7 @@ export default class Account extends Service {
       if (existAccount) {
         return { success: 0, text: '创建失败,邮箱已存在' };
       }
-      const defaultAvatar = 'http://qfz0ncp9r.hn-bkt.clouddn.com/Fnn562fSUBw4HdUH7GOH8sWD0GnH';
+      const defaultAvatar = 'https://src.renjianzahuopu.store/note/joker.jpeg';
       await this.app.mongo.insertOne(Collections.ACCOUNTS, { doc: { id, ...account, avatar: defaultAvatar } });
       // 注册成功生成欢迎笔记
       this.ctx.service.file.create({
