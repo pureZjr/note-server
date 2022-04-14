@@ -346,6 +346,7 @@ export default class File extends Service {
             likes: shareFile.likes || [],
             read: shareFile.read || [],
             responses: shareFile.responses || [],
+            createTime: shareFile.ts,
           },
           text: '获取成功',
         };
