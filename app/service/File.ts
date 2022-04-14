@@ -342,6 +342,7 @@ export default class File extends Service {
             title: fileInfo.title,
             content: fileDetail.content,
             type: fileInfo.type,
+            creator: shareFile.creator,
           },
           text: '获取成功',
         };
