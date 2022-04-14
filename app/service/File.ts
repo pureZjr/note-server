@@ -492,7 +492,7 @@ export default class File extends Service {
         },
         update: { $addToSet: { responses: response } },
       });
-      return { success: 0, text: '更新成功' };
+      return { success: 1, text: '更新成功' };
     } catch {
       return { success: 0, text: '更新失败' };
     }
@@ -514,7 +514,7 @@ export default class File extends Service {
           ? { $pull: { likes: email } }
           : { $addToSet: { likes: email } },
       });
-      return { success: 0, text: '更新成功' };
+      return { success: 1, text: '更新成功' };
     } catch {
       return { success: 0, text: '更新失败' };
     }
@@ -533,7 +533,7 @@ export default class File extends Service {
         },
         update: { $addToSet: { read: email } },
       });
-      return { success: 0, text: '更新成功' };
+      return { success: 1, text: '更新成功' };
     } catch {
       return { success: 0, text: '更新失败' };
     }
