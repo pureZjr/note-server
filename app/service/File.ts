@@ -343,6 +343,9 @@ export default class File extends Service {
             content: fileDetail.content,
             type: fileInfo.type,
             creator: shareFile.creator,
+            likes: shareFile.likes || [],
+            read: shareFile.read || [],
+            responses: shareFile.responses || [],
           },
           text: '获取成功',
         };
