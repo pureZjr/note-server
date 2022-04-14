@@ -22,14 +22,13 @@ export interface IFile {
 export enum Tabs {
   NewDoc = '1',
   MyFolder = '2',
-  Recycle = '3'
+  Recycle = '3',
 }
 
 /**
  * File Service
  */
 export default class File extends Service {
-
   /**
    * 新增文件
    * @param {Object} file - 文件对象
@@ -54,7 +53,15 @@ export default class File extends Service {
         tags: [],
       };
       // 判断文件名称是否存在
-      const existFile = await this.app.mongo.findOne(Collections.FILES, { query: { accountId: file.accountId, inRecycle: false, parentId: file.parentId, title: file.title, type: file.type } });
+      const existFile = await this.app.mongo.findOne(Collections.FILES, {
+        query: {
+          accountId: file.accountId,
+          inRecycle: false,
+          parentId: file.parentId,
+          title: file.title,
+          type: file.type,
+        },
+      });
       if (existFile) {
         if ([Types.ARTICLE, Types.MARKDOWN].includes(file.type)) {
           return { success: 0, text: '创建失败,名称已存在' };
@@ -63,14 +70,31 @@ export default class File extends Service {
       }
       const content = file.content;
       delete file.content;
-      const belongFolder = await this.app.mongo.findOne(Collections.FOLDERS, { query: { accountId: file.accountId, id: file.parentId, inRecycle: false } });
-      const parentFolderTitle = belongFolder ? belongFolder.title : '我的文件夹';
+      const belongFolder = await this.app.mongo.findOne(Collections.FOLDERS, {
+        query: {
+          accountId: file.accountId,
+          id: file.parentId,
+          inRecycle: false,
+        },
+      });
+      const parentFolderTitle = belongFolder
+        ? belongFolder.title
+        : '我的文件夹';
       // 插入文件基本信息
-      const insertData = { ...file, parentFolderTitle, parentKey: `${belongFolder ? belongFolder.key : '2'}`, key: `${belongFolder ? belongFolder.key : '2'}-${id}`, id, ...extra };
+      const insertData = {
+        ...file,
+        parentFolderTitle,
+        parentKey: `${belongFolder ? belongFolder.key : '2'}`,
+        key: `${belongFolder ? belongFolder.key : '2'}-${id}`,
+        id,
+        ...extra,
+      };
       await this.app.mongo.insertOne(Collections.FILES, { doc: insertData });
       // 插入文件链接
       const db = file.type as string;
-      await this.app.mongo.insertOne(db, { doc: { id, accountId: file.accountId, content } });
+      await this.app.mongo.insertOne(db, {
+        doc: { id, accountId: file.accountId, content },
+      });
       return { success: 1, data: insertData, text: '创建成功' };
     } catch {
       return { success: 0, text: '创建失败' };
@@ -86,7 +110,10 @@ export default class File extends Service {
   async getInFolder(accountId: string, parentKey: string, sort: string) {
     const sortBy = {};
     sortBy[sort] = -1;
-    const result = await this.app.mongo.find(Collections.FILES, { query: { parentKey, accountId, inRecycle: false }, sort: { isTop: -1, ...sortBy } });
+    const result = await this.app.mongo.find(Collections.FILES, {
+      query: { parentKey, accountId, inRecycle: false },
+      sort: { isTop: -1, ...sortBy },
+    });
     return { success: 1, data: result, text: '获取成功' };
   }
 
@@ -99,10 +126,12 @@ export default class File extends Service {
   async get(id: string, accountId: string, sort: string) {
     const sortBy = {};
     sortBy[sort] = -1;
-    const result = await (await this.app.mongo.find(Collections.FILES, { query: { id, accountId }, sort: { isTop: -1, ...sortBy } }));
+    const result = await await this.app.mongo.find(Collections.FILES, {
+      query: { id, accountId },
+      sort: { isTop: -1, ...sortBy },
+    });
     return { success: 1, data: result, text: '获取成功' };
   }
-
 
   /**
    * 删除文件（软删除）
@@ -111,7 +140,10 @@ export default class File extends Service {
    */
   async del(id: string, accountId: string) {
     try {
-      await this.app.mongo.findOneAndUpdate(Collections.FILES, { filter: { id, accountId }, update: { $set: { inRecycle: true } } });
+      await this.app.mongo.findOneAndUpdate(Collections.FILES, {
+        filter: { id, accountId },
+        update: { $set: { inRecycle: true } },
+      });
       return { success: 1, text: '删除成功' };
     } catch {
       return { success: 0, text: '删除失败' };
@@ -126,7 +158,9 @@ export default class File extends Service {
    */
   async delComplete(id: string, accountId: string, type: Types) {
     try {
-      await this.app.mongo.deleteMany(Collections.FILES, { filter: { id, accountId } });
+      await this.app.mongo.deleteMany(Collections.FILES, {
+        filter: { id, accountId },
+      });
       const db = type;
       await this.app.mongo.findOneAndDelete(db, { filter: { id, accountId } });
       return { success: 1, text: '删除成功' };
@@ -142,7 +176,10 @@ export default class File extends Service {
    */
   async recoverFile(accountId, id) {
     try {
-      await this.app.mongo.findOneAndUpdate(Collections.FILES, { filter: { id, accountId }, update: { $set: { inRecycle: false } } });
+      await this.app.mongo.findOneAndUpdate(Collections.FILES, {
+        filter: { id, accountId },
+        update: { $set: { inRecycle: false } },
+      });
       return { success: 1, text: '删除成功' };
     } catch {
       return { success: 0, text: '删除失败' };
@@ -158,12 +195,19 @@ export default class File extends Service {
   async renameFile(accountId, id, title) {
     try {
       // 判断文件名称是否存在
-      const fileInfo = await this.app.mongo.findOne(Collections.FILES, { query: { accountId, id } });
-      const existFileTitle = await this.app.mongo.findOne(Collections.FILES, { query: { accountId, parentId: fileInfo.parentId, title } });
+      const fileInfo = await this.app.mongo.findOne(Collections.FILES, {
+        query: { accountId, id },
+      });
+      const existFileTitle = await this.app.mongo.findOne(Collections.FILES, {
+        query: { accountId, parentId: fileInfo.parentId, title },
+      });
       if (existFileTitle) {
         return { success: 0, text: '创建失败,名称已存在' };
       }
-      await this.app.mongo.findOneAndUpdate(Collections.FILES, { filter: { id, accountId }, update: { $set: { title } } });
+      await this.app.mongo.findOneAndUpdate(Collections.FILES, {
+        filter: { id, accountId },
+        update: { $set: { title } },
+      });
       return { success: 1, text: '修改成功' };
     } catch {
       return { success: 0, text: '修改失败' };
@@ -178,11 +222,16 @@ export default class File extends Service {
   async getDelFile(accountId, sort: string) {
     try {
       const query = {
-        accountId, inRecycle: true, parentInRecycle: false,
+        accountId,
+        inRecycle: true,
+        parentInRecycle: false,
       };
       const sortBy = {};
       sortBy[sort] = -1;
-      const res = (await this.app.mongo.find(Collections.FILES, { query, sort: { ...sortBy } }));
+      const res = await this.app.mongo.find(Collections.FILES, {
+        query,
+        sort: { ...sortBy },
+      });
       return { success: 1, data: res, text: '获取成功' };
     } catch (err) {
       console.log(err);
@@ -204,7 +253,10 @@ export default class File extends Service {
       };
       const sortBy = {};
       sortBy[sort] = -1;
-      const res = (await this.app.mongo.find(Collections.FILES, { query, sort: { isTop: -1, ...sortBy } }));
+      const res = await this.app.mongo.find(Collections.FILES, {
+        query,
+        sort: { isTop: -1, ...sortBy },
+      });
       return { success: 1, data: res, text: '获取成功' };
     } catch (err) {
       return { success: 0, text: '获取失败' };
@@ -220,7 +272,8 @@ export default class File extends Service {
   async setTop(accountId, id, is_top) {
     try {
       await this.app.mongo.findOneAndUpdate(Collections.FILES, {
-        filter: { id, accountId }, update: { $set: { isTop: is_top } },
+        filter: { id, accountId },
+        update: { $set: { isTop: is_top } },
       });
       return { success: 1, text: '更新成功' };
     } catch (err) {
@@ -240,16 +293,23 @@ export default class File extends Service {
    */
   async edit(file: IFile) {
     try {
-      const update = { ...file, content: undefined, updateTime: new Date().getTime(), size: sizeof(file.content, 'utf-8') };
+      const update = {
+        ...file,
+        content: undefined,
+        updateTime: new Date().getTime(),
+        size: sizeof(file.content, 'utf-8'),
+      };
       delete update.id;
       // 修改文件基本信息
       await this.app.mongo.findOneAndUpdate(Collections.FILES, {
-        filter: { id: file.id, accountId: file.accountId }, update: { $set: update },
+        filter: { id: file.id, accountId: file.accountId },
+        update: { $set: update },
       });
       // 修改文件内容
       const db = file.type;
       await this.app.mongo.findOneAndUpdate(db, {
-        filter: { id: file.id }, update: { $set: { content: file.content } },
+        filter: { id: file.id },
+        update: { $set: { content: file.content } },
       });
       return { success: 1, text: '更新成功' };
     } catch (err) {
@@ -269,13 +329,24 @@ export default class File extends Service {
         },
       });
       if (shareFile._id) {
-        const fileInfo = (await this.app.mongo.findOne(Collections.FILES, { query: { key } }));
+        const fileInfo = await this.app.mongo.findOne(Collections.FILES, {
+          query: { key },
+        });
         const db = fileInfo.type;
-        const fileDetail = await this.app.mongo.findOne(db, { query: { id: fileInfo.id } });
-        return { success: 1, data: { title: fileInfo.title, content: fileDetail.content, type: fileInfo.type }, text: '获取成功' };
+        const fileDetail = await this.app.mongo.findOne(db, {
+          query: { id: fileInfo.id },
+        });
+        return {
+          success: 1,
+          data: {
+            title: fileInfo.title,
+            content: fileDetail.content,
+            type: fileInfo.type,
+          },
+          text: '获取成功',
+        };
       }
       return { success: 0, text: '获取失败' };
-
     } catch (err) {
       return { success: 0, text: '获取失败' };
     }
@@ -313,32 +384,52 @@ export default class File extends Service {
       }
       console.log({ ...query });
       const res = await this.app.mongo.aggregate(Collections.FILES, {
-        pipeline: [{
-          $lookup: {
-            from: 'markdown',
-            localField: 'id',
-            foreignField: 'id',
-            as: 'markdown',
+        pipeline: [
+          {
+            $lookup: {
+              from: 'markdown',
+              localField: 'id',
+              foreignField: 'id',
+              as: 'markdown',
+            },
           },
-        }, {
-          $lookup: {
-            from: 'article',
-            localField: 'id',
-            foreignField: 'id',
-            as: 'article',
+          {
+            $lookup: {
+              from: 'article',
+              localField: 'id',
+              foreignField: 'id',
+              as: 'article',
+            },
           },
-        }, {
-          $match: {
-            content: { $ne: [] },
-            ...query,
-            $or: [
-              { title: { $regex: new RegExp(keyword) } },
-              { 'markdown.content': { $regex: new RegExp(keyword) } },
-              { 'article.content': { $regex: new RegExp(keyword) } },
-            ],
-
+          {
+            $match: {
+              content: { $ne: [] },
+              ...query,
+              $or: [
+                { title: { $regex: new RegExp(keyword) } },
+                { 'markdown.content': { $regex: new RegExp(keyword) } },
+                { 'article.content': { $regex: new RegExp(keyword) } },
+              ],
+            },
           },
-        }, { $project: { _id: 1, id: 1, title: 1, type: 1, parentId: 1, accountId: 1, parentFolderTitle: 1, parentKey: 1, key: 1, createTime: 1, updateTime: 1, inRecycle: 1, parentInRecycle: 1, size: 1 } },
+          {
+            $project: {
+              _id: 1,
+              id: 1,
+              title: 1,
+              type: 1,
+              parentId: 1,
+              accountId: 1,
+              parentFolderTitle: 1,
+              parentKey: 1,
+              key: 1,
+              createTime: 1,
+              updateTime: 1,
+              inRecycle: 1,
+              parentInRecycle: 1,
+              size: 1,
+            },
+          },
         ],
       });
       return { success: 1, data: res, text: '获取成功' };
@@ -351,19 +442,95 @@ export default class File extends Service {
    * 生成共享文件
    * @param {string} key - 文件key
    * @param { number } ts - 共享时长
+   * @param { Object } creator - 分享者
+   * @param {string} creator.username - 分享者名称
+   * @param {string} creator.email - 分享者邮箱
+   * @param {string} creator.avatar - 分享者头像
    */
-  async setShareFile(key, ts) {
+  async setShareFile(key, ts, creator) {
     try {
-      await this.app.mongo.findOneAndDelete(Collections.SHAREFILES, { filter: { key } });
+      await this.app.mongo.findOneAndDelete(Collections.SHAREFILES, {
+        filter: { key },
+      });
       await this.app.mongo.insertOne(Collections.SHAREFILES, {
         doc: {
           key,
           ts,
+          creator,
         },
       });
-      return { success: 1, text: '获取成功' };
+      return { success: 1, text: '更新成功' };
     } catch (err) {
-      return { success: 0, text: '获取失败' };
+      return { success: 0, text: '更新失败' };
+    }
+  }
+
+  /**
+   * 评论分享文章
+   * @param { string } key - 文章的key
+   * @param { Object } commenter - 评论者
+   * @param {string} commenter.username - 评论者名称
+   * @param {string} commenter.email - 评论者邮箱
+   * @param {string} commenter.avatar - 评论者头像
+   * @param { string } comment - 评论内容
+   */
+  async commentShareFile(key, commenter, comment) {
+    try {
+      const response = {
+        commenter,
+        comment,
+        id: uuidv4(),
+      };
+      await this.app.mongo.findOneAndUpdate(Collections.SHAREFILES, {
+        filter: {
+          key,
+        },
+        update: { $addToSet: { responses: response } },
+      });
+      return { success: 0, text: '更新成功' };
+    } catch {
+      return { success: 0, text: '更新失败' };
+    }
+  }
+
+  /**
+   * 点赞、取消点赞分享文章
+   * @param { string } key - 文章的key
+   * @param { string } email - 点赞邮箱
+   * @param { boolean } cancel - 取消点赞
+   */
+  async likeShareFile(key, email, cancel) {
+    try {
+      await this.app.mongo.findOneAndUpdate(Collections.SHAREFILES, {
+        filter: {
+          key,
+        },
+        update: cancel
+          ? { $pull: { likes: email } }
+          : { $addToSet: { likes: email } },
+      });
+      return { success: 0, text: '更新成功' };
+    } catch {
+      return { success: 0, text: '更新失败' };
+    }
+  }
+
+  /**
+   * 最近阅读分享文章
+   * @param { string } key - 文章的key
+   * @param { string } email - 邮箱
+   */
+  async recentReadShareFile(key, email) {
+    try {
+      await this.app.mongo.findOneAndUpdate(Collections.SHAREFILES, {
+        filter: {
+          key,
+        },
+        update: { $addToSet: { read: email } },
+      });
+      return { success: 0, text: '更新成功' };
+    } catch {
+      return { success: 0, text: '更新失败' };
     }
   }
 
@@ -380,9 +547,10 @@ export default class File extends Service {
         id,
       };
       const db = type;
-      const res = (await this.app.mongo.findOne(db, { query }));
+      const res = await this.app.mongo.findOne(db, { query });
       return { success: 1, data: res.content || '', text: '获取成功' };
-    } catch (err) { return { success: 0, text: '获取失败' }; }
+    } catch (err) {
+      return { success: 0, text: '获取失败' };
+    }
   }
-
 }
