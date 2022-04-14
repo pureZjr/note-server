@@ -344,7 +344,7 @@ export default class File extends Service {
             type: fileInfo.type,
             creator: shareFile.creator,
             likes: shareFile.likes || [],
-            read: shareFile.read || [],
+            reads: shareFile.read || [],
             responses: shareFile.responses || [],
             createTime: shareFile.ts,
           },
