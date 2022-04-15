@@ -101,6 +101,18 @@ export default class File extends Controller {
     };
   }
 
+  async getShareToMeFile() {
+    const ctx = this.ctx;
+    const { sort, email } = this.ctx.request.query;
+    const res = await ctx.service.file.getShareToMeFile(email, sort);
+    // 设置响应体和状态码
+    ctx.body = {
+      status: res.success === 1 ? 'ok' : 'error',
+      data: res.data,
+      text: res.text,
+    };
+  }
+
   async getNewestFile() {
     const ctx = this.ctx;
     const { sort } = ctx.request.query;

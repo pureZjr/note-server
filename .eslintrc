@@ -5,6 +5,7 @@
   },
   "rules": {
     "array-bracket-spacing": "off",
-    "template-curly-spacing": "off"
+    "template-curly-spacing": "off",
+    "arrow-parens": "off"
   }
 }

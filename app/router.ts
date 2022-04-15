@@ -49,4 +49,5 @@ export default (app: Application) => {
   router.post('/like-share-file', controller.file.likeShareFile);
   router.post('/recent-read-share-file', controller.file.recentReadShareFile);
   router.get('/file-content-get', controller.file.fileContentGet);
+  router.get('/share-to-me-file-get', controller.file.getShareToMeFile);
 };

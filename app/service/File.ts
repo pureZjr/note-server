@@ -240,6 +240,27 @@ export default class File extends Service {
   }
 
   /**
+   * 获取与我分享的文件
+   * @param {string} email - 用户邮箱
+   * @param {string} sort - 排序，默认更新时间
+   */
+  async getShareToMeFile(email, sort: string) {
+    try {
+      const query = { reads: { $in: [email] } };
+      const sortBy = {};
+      sortBy[sort] = -1;
+      const res = await this.app.mongo.find(Collections.SHAREFILES, {
+        query,
+        sort: { ...sortBy },
+      });
+      return { success: 1, data: res, text: '获取成功' };
+    } catch (err) {
+      console.log(err);
+      return { success: 0, text: '获取失败' };
+    }
+  }
+
+  /**
    * 获取最新文件
    * @param {string} accountId - 用户id
    * @param {string} sort - 排序，默认更新时间
@@ -539,7 +560,7 @@ export default class File extends Service {
         filter: {
           key,
         },
-        update: { $addToSet: { read: email } },
+        update: { $addToSet: { reads: email } },
       });
       return { success: 1, text: '更新成功' };
     } catch {
