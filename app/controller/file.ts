@@ -178,8 +178,17 @@ export default class File extends Controller {
 
   async setShareFile() {
     const ctx = this.ctx;
-    const { key, ts, creator } = ctx.request.body;
-    const res = await ctx.service.file.setShareFile(key, ts, creator);
+    const { key, type, updateTime, size, title, ts, creator } =
+      ctx.request.body;
+    const res = await ctx.service.file.setShareFile(
+      key,
+      type,
+      updateTime,
+      size,
+      title,
+      ts,
+      creator,
+    );
     // 设置响应体和状态码
     ctx.body = {
       status: res.success === 1 ? 'ok' : 'error',

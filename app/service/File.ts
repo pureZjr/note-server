@@ -446,13 +446,17 @@ export default class File extends Service {
   /**
    * 生成共享文件
    * @param {string} key - 文件key
+   * @param {string} type - 文件类型
+   * @param {string} updateTime - 文件更新时间
+   * @param {string} size - 文件大小
+   * @param {string} title - 文件标题
    * @param { number } ts - 共享时长
    * @param { Object } creator - 分享者
    * @param {string} creator.username - 分享者名称
    * @param {string} creator.email - 分享者邮箱
    * @param {string} creator.avatar - 分享者头像
    */
-  async setShareFile(key, ts, creator) {
+  async setShareFile(key, type, updateTime, size, title, ts, creator) {
     try {
       await this.app.mongo.findOneAndDelete(Collections.SHAREFILES, {
         filter: { key },
@@ -460,6 +464,10 @@ export default class File extends Service {
       await this.app.mongo.insertOne(Collections.SHAREFILES, {
         doc: {
           key,
+          type,
+          updateTime,
+          size,
+          title,
           ts,
           creator,
         },
