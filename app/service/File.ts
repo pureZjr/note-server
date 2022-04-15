@@ -340,18 +340,18 @@ export default class File extends Service {
 
   /**
    * 获取共享文件
-   * @param {string} key - 文件key
+   * @param {string} id - 文件id
    */
-  async getShareFile(key) {
+  async getShareFile(id) {
     try {
       const shareFile = await this.app.mongo.findOne(Collections.SHAREFILES, {
         query: {
-          key,
+          id,
         },
       });
       if (shareFile._id) {
         const fileInfo = await this.app.mongo.findOne(Collections.FILES, {
-          query: { key },
+          query: { id },
         });
         const db = fileInfo.type;
         const fileDetail = await this.app.mongo.findOne(db, {
@@ -466,6 +466,7 @@ export default class File extends Service {
 
   /**
    * 生成共享文件
+   * @param {string} id - 文件id
    * @param {string} key - 文件key
    * @param {string} type - 文件类型
    * @param {string} updateTime - 文件更新时间
@@ -477,13 +478,14 @@ export default class File extends Service {
    * @param {string} creator.email - 分享者邮箱
    * @param {string} creator.avatar - 分享者头像
    */
-  async setShareFile(key, type, updateTime, size, title, ts, creator) {
+  async setShareFile(id, key, type, updateTime, size, title, ts, creator) {
     try {
       await this.app.mongo.findOneAndDelete(Collections.SHAREFILES, {
-        filter: { key },
+        filter: { id },
       });
       await this.app.mongo.insertOne(Collections.SHAREFILES, {
         doc: {
+          id,
           key,
           type,
           updateTime,
@@ -501,14 +503,14 @@ export default class File extends Service {
 
   /**
    * 评论分享文章
-   * @param { string } key - 文章的key
+   * @param { string } id - 文章的id
    * @param { Object } commenter - 评论者
    * @param {string} commenter.username - 评论者名称
    * @param {string} commenter.email - 评论者邮箱
    * @param {string} commenter.avatar - 评论者头像
    * @param { string } comment - 评论内容
    */
-  async commentShareFile(key, commenter, comment) {
+  async commentShareFile(id, commenter, comment) {
     try {
       const response = {
         commenter,
@@ -517,7 +519,7 @@ export default class File extends Service {
       };
       await this.app.mongo.findOneAndUpdate(Collections.SHAREFILES, {
         filter: {
-          key,
+          id,
         },
         update: { $addToSet: { responses: response } },
       });
@@ -529,15 +531,15 @@ export default class File extends Service {
 
   /**
    * 点赞、取消点赞分享文章
-   * @param { string } key - 文章的key
+   * @param { string } id - 文章的id
    * @param { string } email - 点赞邮箱
    * @param { boolean } cancel - 取消点赞
    */
-  async likeShareFile(key, email, cancel) {
+  async likeShareFile(id, email, cancel) {
     try {
       await this.app.mongo.findOneAndUpdate(Collections.SHAREFILES, {
         filter: {
-          key,
+          id,
         },
         update: cancel
           ? { $pull: { likes: email } }
@@ -551,14 +553,14 @@ export default class File extends Service {
 
   /**
    * 最近阅读分享文章
-   * @param { string } key - 文章的key
+   * @param { string } id - 文章的id
    * @param { string } email - 邮箱
    */
-  async recentReadShareFile(key, email) {
+  async recentReadShareFile(id, email) {
     try {
       await this.app.mongo.findOneAndUpdate(Collections.SHAREFILES, {
         filter: {
-          key,
+          id,
         },
         update: { $addToSet: { reads: email } },
       });
@@ -570,14 +572,12 @@ export default class File extends Service {
 
   /**
    * 获取文件内容
-   * @param {string} accountId - 用户id
    * @param {string} id - 文件id
    * @param {string} type - 类型
    */
-  async fileContentGet(accountId, id, type) {
+  async fileContentGet(id, type) {
     try {
       const query = {
-        accountId,
         id,
       };
       const db = type;

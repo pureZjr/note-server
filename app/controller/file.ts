@@ -178,8 +178,8 @@ export default class File extends Controller {
 
   async getShareFile() {
     const ctx = this.ctx;
-    const { key } = ctx.request.query;
-    const res = await ctx.service.file.getShareFile(key);
+    const { id } = ctx.request.query;
+    const res = await ctx.service.file.getShareFile(id);
     // 设置响应体和状态码
     ctx.body = {
       status: res.success === 1 ? 'ok' : 'error',
@@ -190,9 +190,10 @@ export default class File extends Controller {
 
   async setShareFile() {
     const ctx = this.ctx;
-    const { key, type, updateTime, size, title, ts, creator } =
+    const { id, key, type, updateTime, size, title, ts, creator } =
       ctx.request.body;
     const res = await ctx.service.file.setShareFile(
+      id,
       key,
       type,
       updateTime,
@@ -211,7 +212,7 @@ export default class File extends Controller {
   async fileContentGet() {
     const ctx = this.ctx;
     const { id, type } = ctx.request.query;
-    const res = await ctx.service.file.fileContentGet(ctx.accountId, id, type);
+    const res = await ctx.service.file.fileContentGet(id, type);
     // 设置响应体和状态码
     ctx.body = {
       status: res.success === 1 ? 'ok' : 'error',
@@ -222,12 +223,8 @@ export default class File extends Controller {
 
   async commentShareFile() {
     const ctx = this.ctx;
-    const { key, commenter, comment } = ctx.request.body;
-    const res = await ctx.service.file.commentShareFile(
-      key,
-      commenter,
-      comment,
-    );
+    const { id, commenter, comment } = ctx.request.body;
+    const res = await ctx.service.file.commentShareFile(id, commenter, comment);
     // 设置响应体和状态码
     ctx.body = {
       status: res.success === 1 ? 'ok' : 'error',
@@ -237,8 +234,8 @@ export default class File extends Controller {
 
   async likeShareFile() {
     const ctx = this.ctx;
-    const { key, email, cancel } = ctx.request.body;
-    const res = await ctx.service.file.likeShareFile(key, email, cancel);
+    const { id, email, cancel } = ctx.request.body;
+    const res = await ctx.service.file.likeShareFile(id, email, cancel);
     // 设置响应体和状态码
     ctx.body = {
       status: res.success === 1 ? 'ok' : 'error',
@@ -248,8 +245,8 @@ export default class File extends Controller {
 
   async recentReadShareFile() {
     const ctx = this.ctx;
-    const { key, email } = ctx.request.body;
-    const res = await ctx.service.file.recentReadShareFile(key, email);
+    const { id, email } = ctx.request.body;
+    const res = await ctx.service.file.recentReadShareFile(id, email);
     // 设置响应体和状态码
     ctx.body = {
       status: res.success === 1 ? 'ok' : 'error',
