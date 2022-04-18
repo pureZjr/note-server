@@ -144,6 +144,10 @@ export default class File extends Service {
         filter: { id, accountId },
         update: { $set: { inRecycle: true } },
       });
+      // 删除文件要删除分享的文件
+      await this.app.mongo.findOneAndDelete(Collections.SHAREFILES, {
+        filter: { id },
+      });
       return { success: 1, text: '删除成功' };
     } catch {
       return { success: 0, text: '删除失败' };
@@ -468,6 +472,9 @@ export default class File extends Service {
    * 生成共享文件
    * @param {string} id - 文件id
    * @param {string} key - 文件key
+   * @param {string} parentFolderTitle - 父文件夹标题
+   * @param {string} parentId - 父文件夹id
+   * @param {string} parentKey - 父文件夹key
    * @param {string} type - 文件类型
    * @param {string} updateTime - 文件更新时间
    * @param {string} size - 文件大小
@@ -477,24 +484,44 @@ export default class File extends Service {
    * @param {string} creator.username - 分享者名称
    * @param {string} creator.email - 分享者邮箱
    * @param {string} creator.avatar - 分享者头像
+   * @param {boolean} isCancel - 取消分享
    */
-  async setShareFile(id, key, type, updateTime, size, title, ts, creator) {
+  async setShareFile(
+    id,
+    key,
+    parentFolderTitle,
+    parentId,
+    parentKey,
+    type,
+    updateTime,
+    size,
+    title,
+    ts,
+    creator,
+    isCancel,
+  ) {
     try {
       await this.app.mongo.findOneAndDelete(Collections.SHAREFILES, {
         filter: { id },
       });
-      await this.app.mongo.insertOne(Collections.SHAREFILES, {
-        doc: {
-          id,
-          key,
-          type,
-          updateTime,
-          size,
-          title,
-          ts,
-          creator,
-        },
-      });
+      if (!isCancel) {
+        await this.app.mongo.insertOne(Collections.SHAREFILES, {
+          doc: {
+            id,
+            key,
+            parentFolderTitle,
+            parentId,
+            parentKey,
+            type,
+            updateTime,
+            size,
+            title,
+            ts,
+            creator,
+          },
+        });
+      }
+
       return { success: 1, text: '更新成功' };
     } catch (err) {
       return { success: 0, text: '更新失败' };
@@ -583,6 +610,21 @@ export default class File extends Service {
       const db = type;
       const res = await this.app.mongo.findOne(db, { query });
       return { success: 1, data: res.content || '', text: '获取成功' };
+    } catch (err) {
+      return { success: 0, text: '获取失败' };
+    }
+  }
+
+  /**
+   * 获取我分享的文件
+   * @param {string} email - 分享者的email
+   */
+  async myShareFile(email) {
+    try {
+      const res = await this.app.mongo.find(Collections.SHAREFILES, {
+        query: { 'creator.email': email },
+      });
+      return { success: 1, data: res || [], text: '获取成功' };
     } catch (err) {
       return { success: 0, text: '获取失败' };
     }

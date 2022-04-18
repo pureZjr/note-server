@@ -190,9 +190,7 @@ export default class File extends Controller {
 
   async setShareFile() {
     const ctx = this.ctx;
-    const { id, key, type, updateTime, size, title, ts, creator } =
-      ctx.request.body;
-    const res = await ctx.service.file.setShareFile(
+    const {
       id,
       key,
       type,
@@ -201,6 +199,24 @@ export default class File extends Controller {
       title,
       ts,
       creator,
+      isCancel,
+      parentFolderTitle,
+      parentId,
+      parentKey,
+    } = ctx.request.body;
+    const res = await ctx.service.file.setShareFile(
+      id,
+      key,
+      parentFolderTitle,
+      parentId,
+      parentKey,
+      type,
+      updateTime,
+      size,
+      title,
+      ts,
+      creator,
+      isCancel,
     );
     // 设置响应体和状态码
     ctx.body = {
@@ -250,6 +266,18 @@ export default class File extends Controller {
     // 设置响应体和状态码
     ctx.body = {
       status: res.success === 1 ? 'ok' : 'error',
+      text: res.text,
+    };
+  }
+
+  async myShareFile() {
+    const ctx = this.ctx;
+    const { email } = ctx.request.query;
+    const res = await ctx.service.file.myShareFile(email);
+    // 设置响应体和状态码
+    ctx.body = {
+      status: res.success === 1 ? 'ok' : 'error',
+      data: res.data,
       text: res.text,
     };
   }
