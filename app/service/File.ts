@@ -250,7 +250,13 @@ export default class File extends Service {
    */
   async getShareToMeFile(email, sort: string) {
     try {
-      const query = { reads: { $in: [email] } };
+      console.log(email);
+      const query = {
+        $and: [
+          { reads: { $in: [email] } },
+          { 'creator.email': { $ne: email } },
+        ],
+      };
       const sortBy = {};
       sortBy[sort] = -1;
       const res = await this.app.mongo.find(Collections.SHAREFILES, {
@@ -412,7 +418,6 @@ export default class File extends Service {
           inRecycle: true,
         });
       }
-      console.log({ ...query });
       const res = await this.app.mongo.aggregate(Collections.FILES, {
         pipeline: [
           {
