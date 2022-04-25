@@ -621,7 +621,7 @@ export default class File extends Service {
       const res = await this.app.mongo.findOne(db, { query });
       if (res.content && res.content.indexOf(CDN_QN_SOURCE_URL) < 0) {
         res.content = res.content.replace(
-          /`${QN_SOURCE_URL}`/g,
+          new RegExp(QN_SOURCE_URL, 'g'),
           CDN_QN_SOURCE_URL,
         );
       }
