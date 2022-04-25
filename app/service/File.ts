@@ -2,7 +2,12 @@ import { Service } from 'egg';
 import { v4 as uuidv4 } from 'uuid';
 import * as moment from 'moment';
 
-import { Types, Collections } from '../constant/index';
+import {
+  Types,
+  Collections,
+  QN_SOURCE_URL,
+  CDN_QN_SOURCE_URL,
+} from '../constant/index';
 import { sizeof } from '../util';
 
 export interface IFile {
@@ -614,6 +619,9 @@ export default class File extends Service {
       };
       const db = type;
       const res = await this.app.mongo.findOne(db, { query });
+      if (res.content && res.content.indexOf(CDN_QN_SOURCE_URL) < 0) {
+        res.content = res.content.replace(QN_SOURCE_URL, CDN_QN_SOURCE_URL);
+      }
       return { success: 1, data: res.content || '', text: '获取成功' };
     } catch (err) {
       return { success: 0, text: '获取失败' };
