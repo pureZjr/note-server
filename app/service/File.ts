@@ -620,7 +620,10 @@ export default class File extends Service {
       const db = type;
       const res = await this.app.mongo.findOne(db, { query });
       if (res.content && res.content.indexOf(CDN_QN_SOURCE_URL) < 0) {
-        res.content = res.content.replace(QN_SOURCE_URL, CDN_QN_SOURCE_URL);
+        res.content = res.content.replace(
+          /`${QN_SOURCE_URL}`/g,
+          CDN_QN_SOURCE_URL,
+        );
       }
       return { success: 1, data: res.content || '', text: '获取成功' };
     } catch (err) {
