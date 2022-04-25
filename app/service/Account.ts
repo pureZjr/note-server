@@ -2,6 +2,7 @@ import { Service } from 'egg';
 import { v4 as uuidv4 } from 'uuid';
 import * as jsonwebtoken from 'jsonwebtoken';
 
+import { QN_SOURCE_URL, CDN_QN_SOURCE_URL } from '../constant/index';
 import { Collections, Types } from '../constant/index';
 
 interface IAccount {
@@ -35,7 +36,8 @@ export default class Account extends Service {
       if (existAccount) {
         return { success: 0, text: '创建失败,邮箱已存在' };
       }
-      const defaultAvatar = 'https://src.renjianzahuopu.store/note/joker.jpeg';
+      const defaultAvatar =
+        'https://cdn-src.renjianzahuopu.store/note/joker.jpeg';
       await this.app.mongo.insertOne(Collections.ACCOUNTS, {
         doc: { id, ...account, avatar: defaultAvatar },
       });
@@ -65,6 +67,9 @@ export default class Account extends Service {
       const user = await this.app.mongo.findOne(Collections.ACCOUNTS, {
         query: { ...account },
       });
+      if (user.avatar && user.avatar.indexOf(CDN_QN_SOURCE_URL) < 0) {
+        user.avatar = user.avatar.replace(QN_SOURCE_URL, CDN_QN_SOURCE_URL);
+      }
       if (user) {
         const token = jsonwebtoken.sign(
           { id: user.id, email: user.email },
