@@ -2,7 +2,9 @@ const url = [
   'account-register',
   'account-login',
   'account-logout',
-  'get-article-share',
+  'get-file-share',
+  'comment-share-file',
+  'like-share-file',
 ];
 
 export default url;

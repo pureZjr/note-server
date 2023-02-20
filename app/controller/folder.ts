@@ -3,7 +3,10 @@ import { Controller } from 'egg';
 export default class ArticleController extends Controller {
   async create() {
     const ctx = this.ctx;
-    const res = await ctx.service.folder.create({ ...ctx.request.body, accountId: ctx.accountId });
+    const res = await ctx.service.folder.create({
+      ...ctx.request.body,
+      accountId: ctx.accountId,
+    });
     // 设置响应体和状态码
     ctx.body = {
       status: res.success === 1 ? 'ok' : 'error',
@@ -59,7 +62,10 @@ export default class ArticleController extends Controller {
 
   async edit() {
     const ctx = this.ctx;
-    const res = await ctx.service.folder.edit({ ...ctx.request.body, accountId: ctx.accountId });
+    const res = await ctx.service.folder.edit({
+      ...ctx.request.body,
+      accountId: ctx.accountId,
+    });
     // 设置响应体和状态码
     ctx.body = {
       status: res.success === 1 ? 'ok' : 'error',
@@ -102,13 +108,15 @@ export default class ArticleController extends Controller {
     };
   }
 
-
   async searchFolder() {
     const ctx = this.ctx;
     const { key, keyword, type, sort } = ctx.request.query;
     const res = await ctx.service.folder.searchFolder({
       accountId: ctx.accountId,
-      keyword, type, parentKey: key, sort,
+      keyword,
+      type,
+      parentKey: key,
+      sort,
     });
     // 设置响应体和状态码
     ctx.body = {
@@ -151,4 +159,3 @@ export default class ArticleController extends Controller {
     };
   }
 }
-

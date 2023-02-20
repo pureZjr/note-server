@@ -3,7 +3,6 @@
   "compilerOptions": {
     "target": "es2017",
     "module": "commonjs",
-    "outDir": "dist" /* 输出目录*/,
     "strict": true,
     "noImplicitAny": false,
     "experimentalDecorators": true,

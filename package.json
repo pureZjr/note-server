@@ -8,13 +8,12 @@
     "declarations": false
   },
   "scripts": {
-    "start": "egg-scripts start --env=prod --daemon --title=egg-server-blog --port=8888",
+    "start": "egg-scripts start --env=prod --daemon --title=egg-server-blog --port=3005",
     "stop": "egg-scripts stop --title=egg-server-blog",
     "dev": "egg-bin dev",
     "tsc": "tsc -p tsconfig.json",
     "lint": "eslint . --ext .ts",
-    "clean": "ets clean",
-    "deployProd": "./deploy/deployProd.sh"
+    "clean": "ets clean"
   },
   "dependencies": {
     "egg": "^2.27.0",
