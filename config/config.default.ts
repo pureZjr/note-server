@@ -25,20 +25,22 @@ export default (appInfo: EggAppInfo) => {
 
   config.mongo = {
     client: {
-      host: '',
-      port: '',
-      name: 'blog',
+      host: '127.0.0.1',
+      port: '27017',
+      name: 'note',
       user: '',
       password: '',
-      options: {},
+      options: {
+        useUnifiedTopology: true,
+      },
     },
   };
 
   config.redis = {
     client: {
-      port: ,
-      host: '',
-      password: '',
+      port: 6379,
+      host: '127.0.0.1',
+      password: 'note',
       db: 0,
       reconnectOnError: () => 2,
     },

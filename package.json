@@ -5,7 +5,7 @@
   "private": true,
   "egg": {
     "typescript": true,
-    "declarations": true
+    "declarations": false
   },
   "scripts": {
     "start": "egg-scripts start --env=prod --daemon --title=egg-server-blog --port=8888",
